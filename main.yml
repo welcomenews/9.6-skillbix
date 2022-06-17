@@ -1,0 +1,10 @@
+---
+- name: Install programs
+  hosts: reactjs_servers 
+  become: yes
+  remote_user: root
+  gather_facts: yes
+
+  roles:
+    - reactapp 
+    - nginx

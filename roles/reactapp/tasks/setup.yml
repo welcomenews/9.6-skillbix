@@ -1,0 +1,35 @@
+---
+# Install packeges
+
+- name: Remove Apache2
+  apt:
+    name: apache2
+    state: absent
+  ignore_errors: True
+
+- name: Download APT GPG key
+  apt_key:
+    url: https://dl.yarnpkg.com/debian/pubkey.gpg
+    state: present
+
+- name: Add a line to a file if the file does not exist create it.
+  lineinfile:
+    dest: /etc/apt/sources.list.d/yarn.list
+    line: 'deb http://dl.yarnpkg.com/debian/ stable main'
+    owner: root
+    group: root
+    mode: '0644'
+    create: yes
+
+- name: Only run update_cache
+  apt:
+    update_cache: yes
+
+- name: Install packages
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ packages }}"
+
+
+

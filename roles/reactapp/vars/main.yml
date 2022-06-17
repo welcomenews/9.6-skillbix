@@ -1,0 +1,3 @@
+packages: ['yarn', 'npm', 'nodejs', 'git-all']
+project_path: "/var/www"
+repository: "https://gitlab.com/welcomenews/skillbox-deploy-blue-green.git"

@@ -1,0 +1,99 @@
+---
+- hosts: reactjs_servers 
+
+# Istall ReactJS app
+
+  vars:
+    project_path: /var/www
+    repository: https://gitlab.com/welcomenews/skillbox-deploy-blue-green.git
+
+  tasks:
+    
+    - name: Remove Apache2
+      apt:
+        name: apache2
+        state: absent
+      ignore_errors: True
+          
+    - name: Download APT GPG key
+      apt_key:
+        url: https://dl.yarnpkg.com/debian/pubkey.gpg
+        state: present
+
+#    - name: Create file yarn.list
+#      file:
+#        path: /etc/apt/sources.list.d/yarn.list
+#        owner: root
+#        group: root
+#        mode: '0644'
+    - name: Add a line to a file if the file does not exist create it.
+      lineinfile:
+        dest: /etc/apt/sources.list.d/yarn.list
+        line: 'deb http://dl.yarnpkg.com/debian/ stable main'
+        owner: root
+        group: root
+        mode: '0644'
+        create: yes
+
+    - name: Only run update_cache
+      apt:
+        update_cache: yes
+
+    - name: Install packages
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - yarn
+        - npm
+        - nodejs
+        - git-all
+
+    - name:  
+      set_fact:
+        release_path: "{{ project_path }}/releases/{{ lookup('pipe','date +%Y%m%d%H%M%S') }}"
+#        cacheable: yes
+
+    - name: Create folder 
+      file:
+        path: "{{ project_path }}/html"
+        state: directory
+        recurse: yes
+        mode: '0755'
+
+    - name: Clone repository
+      git:
+        repo: "{{ repository }}"
+        dest: "{{ release_path }}"
+   
+    - name: Replace file App.js
+      replace:
+        path: "{{ release_path }}/src/App.js"
+        regexp: 'Test of revert'
+        replace: '{{ ansible_default_ipv4.address }}'
+        backup: yes
+
+    - npm:
+        name: pm2
+        global: yes
+
+    - name: Check for package.json
+      stat:
+        path: '{{ release_path }}/package.json'
+      register: packagejson
+
+    - name: Install packages from package.json
+      yarn:
+        path: "{{ release_path }}"
+      when: packagejson.stat.exists
+
+    - name: Start ReactJS app
+      command: "pm2 --name ReactJS start npm -- start"
+      args:
+        chdir: "{{ release_path }}"
+      environment:
+        PORT: 80
+      when: packagejson.stat.exists
+
+
+

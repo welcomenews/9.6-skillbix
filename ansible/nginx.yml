@@ -1,0 +1,53 @@
+---
+- hosts: nginx_servers
+
+# Install Nginx
+ 
+  vars:
+    reactjs_host_ip: "51.250.89.21"
+    reactjs_host_port: "80"
+  
+  pre_tasks:
+
+    - name: Remove default site
+      file: 
+        path: "/etc/nginx/sites-enabled/default"
+        state: absent
+
+  tasks:
+
+    - name: Remove Apache2
+      apt:
+        name: apache2
+        state: absent
+      ignore_errors: True
+
+    - name: Install packages
+      apt:
+        name: nginx
+        state: present  
+
+    - name: Copy template file nginx.conf.j2
+      template:
+        src: ./nginx.conf.j2
+        dest: /etc/nginx/sites-enabled/nginx.conf
+        owner: root
+        group: root
+        mode: '0644'
+        force: yes
+      notify: Reload nginx
+
+
+  handlers:
+    - name: Reload nginx
+      service:
+        name: nginx
+        state: reloaded
+
+
+
+
+
+
+
+
