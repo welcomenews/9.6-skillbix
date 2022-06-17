@@ -12,7 +12,7 @@
 
 - name: Install on Ubuntu
   block:
-     - name: Install Nginx Web Server 
+     - name: Install Nginx Web Server
        apt:
          name: nginx
          state: present

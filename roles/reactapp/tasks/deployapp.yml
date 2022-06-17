@@ -1,12 +1,12 @@
 ---
 # Deploy ReactJS
 
-- name:
+- name: Set host variable
   set_fact:
     release_path: "{{ project_path }}/releases/{{ lookup('pipe','date +%Y%m%d%H%M%S') }}"
 #        cacheable: yes
 
-- name: Create folder 
+- name: Create folder
   file:
     path: "{{ project_path }}/html"
     state: directory
@@ -17,6 +17,7 @@
   git:
     repo: "{{ repository }}"
     dest: "{{ release_path }}"
+    version: main
 
 - name: Replace file App.js
   replace:
@@ -25,7 +26,8 @@
     replace: '{{ ansible_default_ipv4.address }}'
     backup: yes
 
-- npm:
+- name: Install "pm2" node.js package
+  npm:
     name: pm2
     global: yes
 
